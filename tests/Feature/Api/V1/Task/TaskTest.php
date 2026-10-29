@@ -452,4 +452,140 @@ class TaskTest extends TestCase
         $this->assertNotNull(Task::find($task->id));
         $this->assertNull(Task::find($task->id)->deleted_at);
     }
+
+    public function test_task_index_filters_by_single_status_id(): void
+    {
+        $pendingTask = Task::create([
+            'created_by'   => $this->user->id,
+            'project_id'   => $this->project->id,
+            'workspace_id' => $this->workspace->id,
+            'status_id'    => $this->pendingStatus->id,
+            'task_type_id' => $this->taskType->id,
+            'title'        => 'Pending Task Item',
+            'position'     => 1,
+        ]);
+
+        $workingTask = Task::create([
+            'created_by'   => $this->user->id,
+            'project_id'   => $this->project->id,
+            'workspace_id' => $this->workspace->id,
+            'status_id'    => $this->workingStatus->id,
+            'task_type_id' => $this->taskType->id,
+            'title'        => 'Working Task Item',
+            'position'     => 2,
+        ]);
+
+        $responsePending = $this->actingAs($this->user, 'sanctum')
+            ->getJson('/api/tasks?status_id=' . $this->pendingStatus->id);
+
+        $responsePending->assertStatus(200);
+        $pendingIds = collect($responsePending->json('data'))->pluck('id');
+        $this->assertTrue($pendingIds->contains($pendingTask->id));
+        $this->assertFalse($pendingIds->contains($workingTask->id));
+
+        $responseWorking = $this->actingAs($this->user, 'sanctum')
+            ->getJson('/api/tasks?status_id=' . $this->workingStatus->id);
+
+        $responseWorking->assertStatus(200);
+        $workingIds = collect($responseWorking->json('data'))->pluck('id');
+        $this->assertTrue($workingIds->contains($workingTask->id));
+        $this->assertFalse($workingIds->contains($pendingTask->id));
+    }
+
+    public function test_task_index_filters_by_multiple_status_ids_using_array_and_comma_separated(): void
+    {
+        $pendingTask = Task::create([
+            'created_by'   => $this->user->id,
+            'project_id'   => $this->project->id,
+            'workspace_id' => $this->workspace->id,
+            'status_id'    => $this->pendingStatus->id,
+            'task_type_id' => $this->taskType->id,
+            'title'        => 'Pending Task Array Test',
+            'position'     => 1,
+        ]);
+
+        $workingTask = Task::create([
+            'created_by'   => $this->user->id,
+            'project_id'   => $this->project->id,
+            'workspace_id' => $this->workspace->id,
+            'status_id'    => $this->workingStatus->id,
+            'task_type_id' => $this->taskType->id,
+            'title'        => 'Working Task Array Test',
+            'position'     => 2,
+        ]);
+
+        $completedTask = Task::create([
+            'created_by'   => $this->user->id,
+            'project_id'   => $this->project->id,
+            'workspace_id' => $this->workspace->id,
+            'status_id'    => $this->completedStatus->id,
+            'task_type_id' => $this->taskType->id,
+            'title'        => 'Completed Task Array Test',
+            'position'     => 3,
+        ]);
+
+        // Array syntax: ?status_id[]=X&status_id[]=Y
+        $responseArray = $this->actingAs($this->user, 'sanctum')
+            ->getJson("/api/tasks?status_id[]={$this->pendingStatus->id}&status_id[]={$this->completedStatus->id}");
+
+        $responseArray->assertStatus(200);
+        $arrayIds = collect($responseArray->json('data'))->pluck('id');
+        $this->assertTrue($arrayIds->contains($pendingTask->id));
+        $this->assertTrue($arrayIds->contains($completedTask->id));
+        $this->assertFalse($arrayIds->contains($workingTask->id));
+
+        // Comma-separated syntax: ?status_id=X,Y
+        $responseComma = $this->actingAs($this->user, 'sanctum')
+            ->getJson("/api/tasks?status_id={$this->workingStatus->id},{$this->completedStatus->id}");
+
+        $responseComma->assertStatus(200);
+        $commaIds = collect($responseComma->json('data'))->pluck('id');
+        $this->assertTrue($commaIds->contains($workingTask->id));
+        $this->assertTrue($commaIds->contains($completedTask->id));
+        $this->assertFalse($commaIds->contains($pendingTask->id));
+
+        // Alias: ?status_ids[]=X
+        $responseAlias = $this->actingAs($this->user, 'sanctum')
+            ->getJson("/api/tasks?status_ids[]={$this->completedStatus->id}");
+
+        $responseAlias->assertStatus(200);
+        $aliasIds = collect($responseAlias->json('data'))->pluck('id');
+        $this->assertTrue($aliasIds->contains($completedTask->id));
+        $this->assertFalse($aliasIds->contains($pendingTask->id));
+        $this->assertFalse($aliasIds->contains($workingTask->id));
+    }
+
+    public function test_trashed_tasks_can_be_filtered_by_status_id(): void
+    {
+        $task1 = Task::create([
+            'created_by'   => $this->user->id,
+            'project_id'   => $this->project->id,
+            'workspace_id' => $this->workspace->id,
+            'status_id'    => $this->pendingStatus->id,
+            'task_type_id' => $this->taskType->id,
+            'title'        => 'Trashed Pending Task',
+            'position'     => 1,
+        ]);
+
+        $task2 = Task::create([
+            'created_by'   => $this->user->id,
+            'project_id'   => $this->project->id,
+            'workspace_id' => $this->workspace->id,
+            'status_id'    => $this->workingStatus->id,
+            'task_type_id' => $this->taskType->id,
+            'title'        => 'Trashed Working Task',
+            'position'     => 2,
+        ]);
+
+        $task1->delete();
+        $task2->delete();
+
+        $response = $this->actingAs($this->user, 'sanctum')
+            ->getJson('/api/tasks/trashed?status_id=' . $this->pendingStatus->id);
+
+        $response->assertStatus(200);
+        $ids = collect($response->json('data'))->pluck('id');
+        $this->assertTrue($ids->contains($task1->id));
+        $this->assertFalse($ids->contains($task2->id));
+    }
 }

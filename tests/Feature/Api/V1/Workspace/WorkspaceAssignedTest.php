@@ -3,6 +3,8 @@
 namespace Tests\Feature\Api\V1\Workspace;
 
 use App\Models\Project;
+use App\Models\Task;
+use App\Models\TaskStatus;
 use App\Models\User;
 use App\Models\Workspace;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -18,7 +20,7 @@ class WorkspaceAssignedTest extends TestCase
         $this->seed(\Database\Seeders\PermissionSeeder::class);
     }
 
-    public function test_user_can_only_see_assigned_workspaces(): void
+    public function test_user_can_see_all_workspaces_and_filter_by_project(): void
     {
         $userA = User::factory()->create();
         $userA->assignRole('admin');
@@ -52,24 +54,23 @@ class WorkspaceAssignedTest extends TestCase
         ]);
         $workspaceB->users()->attach($userB->id, ['role' => 'creator']);
 
-        // User A requests workspaces
+        // User A requests workspaces -> gets all workspaces
         $responseA = $this->actingAs($userA, 'sanctum')->getJson('/api/workspaces');
         $responseA->assertStatus(200);
 
         $workspaceIdsA = collect($responseA->json('data'))->pluck('id');
         $this->assertTrue($workspaceIdsA->contains($workspaceA->id));
-        $this->assertFalse($workspaceIdsA->contains($workspaceB->id));
+        $this->assertTrue($workspaceIdsA->contains($workspaceB->id));
 
-        // User B requests workspaces
-        $responseB = $this->actingAs($userB, 'sanctum')->getJson('/api/workspaces');
-        $responseB->assertStatus(200);
-
-        $workspaceIdsB = collect($responseB->json('data'))->pluck('id');
-        $this->assertTrue($workspaceIdsB->contains($workspaceB->id));
-        $this->assertFalse($workspaceIdsB->contains($workspaceA->id));
+        // Filter by project_id
+        $filteredResponse = $this->actingAs($userA, 'sanctum')->getJson('/api/workspaces?project_id=' . $projectA->id);
+        $filteredResponse->assertStatus(200);
+        $filteredIds = collect($filteredResponse->json('data'))->pluck('id');
+        $this->assertTrue($filteredIds->contains($workspaceA->id));
+        $this->assertFalse($filteredIds->contains($workspaceB->id));
     }
 
-    public function test_user_can_only_see_projects_of_assigned_workspaces_or_created_projects(): void
+    public function test_user_can_see_all_projects_and_their_workspaces(): void
     {
         $userA = User::factory()->create();
         $userA->assignRole('admin');
@@ -92,29 +93,63 @@ class WorkspaceAssignedTest extends TestCase
             'name'       => 'Workspace Alpha',
             'created_by' => $userA->id,
         ]);
-        $workspaceA->users()->attach($userA->id, ['role' => 'creator']);
 
-        $workspaceB = Workspace::create([
-            'project_id' => $projectB->id,
-            'name'       => 'Workspace Beta',
-            'created_by' => $userB->id,
-        ]);
-        $workspaceB->users()->attach($userB->id, ['role' => 'creator']);
-
-        // User A requests projects
+        // User A requests projects -> gets all projects and their workspaces
         $responseA = $this->actingAs($userA, 'sanctum')->getJson('/api/projects');
         $responseA->assertStatus(200);
 
         $projectIdsA = collect($responseA->json('data'))->pluck('id');
         $this->assertTrue($projectIdsA->contains($projectA->id));
-        $this->assertFalse($projectIdsA->contains($projectB->id));
+        $this->assertTrue($projectIdsA->contains($projectB->id));
 
-        // User B requests projects
-        $responseB = $this->actingAs($userB, 'sanctum')->getJson('/api/projects');
-        $responseB->assertStatus(200);
+        $projectAData = collect($responseA->json('data'))->firstWhere('id', $projectA->id);
+        $this->assertNotEmpty($projectAData['workspaces']);
+    }
 
-        $projectIdsB = collect($responseB->json('data'))->pluck('id');
-        $this->assertTrue($projectIdsB->contains($projectB->id));
-        $this->assertFalse($projectIdsB->contains($projectA->id));
+    public function test_user_only_sees_created_tasks_when_querying_another_project(): void
+    {
+        $status = TaskStatus::create(['name' => 'To Do', 'stage' => 'pending', 'order' => 1]);
+
+        $project1 = Project::create(['name' => 'Project 1']);
+        $project2 = Project::create(['name' => 'Project 2']);
+
+        $workspace2 = Workspace::create([
+            'project_id' => $project2->id,
+            'name'       => 'Workspace in Project 2',
+        ]);
+
+        $user1 = User::factory()->create(['project_id' => $project1->id]);
+        $user1->assignRole('admin');
+
+        $user2 = User::factory()->create(['project_id' => $project2->id]);
+        $user2->assignRole('admin');
+
+        // Task in Project 2 created by User 2
+        $taskProject2Other = Task::create([
+            'title'        => 'Task by User 2 in Project 2',
+            'project_id'   => $project2->id,
+            'workspace_id' => $workspace2->id,
+            'created_by'   => $user2->id,
+            'status_id'    => $status->id,
+            'position'     => 1,
+        ]);
+
+        // Task in Project 2 created by User 1
+        $taskProject2User1 = Task::create([
+            'title'        => 'Task by User 1 in Project 2',
+            'project_id'   => $project2->id,
+            'workspace_id' => $workspace2->id,
+            'created_by'   => $user1->id,
+            'status_id'    => $status->id,
+            'position'     => 2,
+        ]);
+
+        // When User 1 queries Project 2, they should ONLY see their own task ($taskProject2User1)
+        $response = $this->actingAs($user1, 'sanctum')->getJson('/api/tasks?project_id=' . $project2->id);
+        $response->assertStatus(200);
+
+        $taskIds = collect($response->json('data'))->pluck('id');
+        $this->assertTrue($taskIds->contains($taskProject2User1->id));
+        $this->assertFalse($taskIds->contains($taskProject2Other->id));
     }
 }

@@ -18,6 +18,8 @@ class TaskTypeResource extends JsonResource
             'id'         => $this->id,
             'name'       => $this->name,
             'type'       => $this->type,
+            'project_id' => $this->project_id,
+            'project'    => new \App\Http\Resources\Api\V1\Project\ProjectResource($this->whenLoaded('project')),
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
         ];

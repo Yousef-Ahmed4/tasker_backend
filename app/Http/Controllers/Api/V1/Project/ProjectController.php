@@ -40,7 +40,7 @@ class ProjectController extends Controller implements HasMiddleware
      */
     public function index(Request $request): JsonResponse
     {
-        $projects = $this->projectService->getAll($request->user()->id);
+        $projects = $this->projectService->getAll();
 
         return $this->successResponse(
             ProjectResource::collection($projects),

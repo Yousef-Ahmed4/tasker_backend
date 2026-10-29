@@ -245,6 +245,7 @@ return [
     'confirm_delete_user'       => 'هل أنت متأكد من حذف هذا المستخدم؟',
     'confirm_delete_task'       => 'هل أنت متأكد من حذف هذه المهمة؟',
     'user_created_success'      => 'تم إنشاء المستخدم بنجاح.',
+    'user_updated_success'      => 'تم تحديث بيانات المستخدم بنجاح.',
     'user_deleted_success'      => 'تم حذف المستخدم بنجاح.',
     'user_restored_success'     => 'تم استرجاع المستخدم بنجاح.',
     'task_deleted_success'      => 'تم حذف المهمة بنجاح.',

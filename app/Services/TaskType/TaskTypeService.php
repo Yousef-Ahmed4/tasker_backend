@@ -8,11 +8,17 @@ use Illuminate\Database\Eloquent\Collection;
 class TaskTypeService
 {
     /**
-     * Get all task types.
+     * Get all task types (optionally filtered by project).
      */
-    public function getAll(): Collection
+    public function getAll(?int $projectId = null): Collection
     {
-        return TaskType::latest()->get();
+        $query = TaskType::with('project')->latest();
+
+        if ($projectId) {
+            $query->where('project_id', $projectId);
+        }
+
+        return $query->get();
     }
 
     /**
@@ -20,7 +26,7 @@ class TaskTypeService
      */
     public function getById(TaskType $taskType): TaskType
     {
-        return $taskType;
+        return $taskType->loadMissing('project');
     }
 
     /**
@@ -28,7 +34,7 @@ class TaskTypeService
      */
     public function create(array $data): TaskType
     {
-        return TaskType::create($data);
+        return TaskType::create($data)->loadMissing('project');
     }
 
     /**
@@ -38,7 +44,7 @@ class TaskTypeService
     {
         $taskType->update($data);
 
-        return $taskType->fresh();
+        return $taskType->fresh()->loadMissing('project');
     }
 
     /**

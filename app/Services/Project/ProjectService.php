@@ -8,20 +8,13 @@ use Illuminate\Database\Eloquent\Collection;
 class ProjectService
 {
     /**
-     * Get all projects (optionally filtered by assigned workspaces or creator).
+     * Get all projects and their workspaces.
      */
     public function getAll(?int $userId = null): Collection
     {
-        $query = Project::with('creator')->withCount(['workspaces', 'tasks'])->latest();
-
-        if ($userId) {
-            $query->where(function ($q) use ($userId) {
-                $q->whereHas('workspaces', function ($wq) use ($userId) {
-                    $wq->whereHas('users', fn($uq) => $uq->where('users.id', $userId))
-                       ->orWhere('created_by', $userId);
-                })->orWhere('created_by', $userId);
-            });
-        }
+        $query = Project::with(['creator', 'workspaces.users'])
+            ->withCount(['workspaces', 'tasks'])
+            ->latest();
 
         return $query->get();
     }

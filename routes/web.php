@@ -39,6 +39,8 @@ Route::middleware('auth:web')->group(function () {
         // 2. User Management
         Route::get('/users', [UserManagementController::class, 'index'])->name('users');
         Route::post('/users', [UserManagementController::class, 'store'])->name('users.store');
+        Route::post('/users/{user}/update', [UserManagementController::class, 'update'])->name('users.update');
+        Route::put('/users/{user}', [UserManagementController::class, 'update'])->name('users.update.put');
         Route::delete('/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
         Route::post('/users/{id}/restore', [UserManagementController::class, 'restore'])->name('users.restore');
         Route::post('/users/{user}/type', [UserManagementController::class, 'updateType'])->name('users.type');
@@ -46,8 +48,14 @@ Route::middleware('auth:web')->group(function () {
         // 3. Role & Permission Management
         Route::get('/roles', [RolePermissionController::class, 'index'])->name('roles');
 
-        // 4. Workspace & Project Management
+        // 4. Workspace (المواسم) & Project (الأقسام) Management
         Route::get('/workspaces', [WorkspaceProjectController::class, 'index'])->name('workspaces');
+        Route::post('/projects', [WorkspaceProjectController::class, 'storeProject'])->name('projects.store');
+        Route::post('/projects/{project}/update', [WorkspaceProjectController::class, 'updateProject'])->name('projects.update');
+        Route::delete('/projects/{project}', [WorkspaceProjectController::class, 'destroyProject'])->name('projects.destroy');
+        Route::post('/workspaces', [WorkspaceProjectController::class, 'storeWorkspace'])->name('workspaces.store');
+        Route::post('/workspaces/{workspace}/update', [WorkspaceProjectController::class, 'updateWorkspace'])->name('workspaces.update');
+        Route::delete('/workspaces/{workspace}', [WorkspaceProjectController::class, 'destroyWorkspace'])->name('workspaces.destroy');
 
         // 5. Tasks Management (with Task Types & Statuses)
         Route::get('/tasks', [TaskManagementController::class, 'index'])->name('tasks');

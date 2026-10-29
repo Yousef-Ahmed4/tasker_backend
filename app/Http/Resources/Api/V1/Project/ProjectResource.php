@@ -27,6 +27,7 @@ class ProjectResource extends JsonResource
                 ];
             }),
             'workspaces_count' => $this->whenCounted('workspaces'),
+            'workspaces'       => \App\Http\Resources\Api\V1\Workspace\WorkspaceResource::collection($this->whenLoaded('workspaces')),
             'tasks_count'      => $this->whenCounted('tasks'),
             'created_at'  => $this->created_at?->toISOString(),
             'updated_at'  => $this->updated_at?->toISOString(),

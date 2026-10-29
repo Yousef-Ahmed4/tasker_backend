@@ -22,7 +22,7 @@ class TaskManagementController extends Controller
     {
         $isTrashed = (bool) $request->boolean('trashed');
 
-        $taskTypes = TaskType::withCount('tasks')->get();
+        $taskTypes = TaskType::with('project')->withCount('tasks')->get();
         $taskStatuses = TaskStatus::withCount('tasks')->orderBy('order')->get();
         $workspaces = Workspace::all();
         $projects = Project::all();
@@ -90,8 +90,9 @@ class TaskManagementController extends Controller
     public function storeType(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'type' => ['required', 'string', Rule::in(['network', 'device', 'focus', 'other'])],
+            'name'       => ['required', 'string', 'max:255'],
+            'type'       => ['required', 'string', Rule::in(['network', 'device', 'focus', 'other'])],
+            'project_id' => ['nullable', 'exists:projects,id'],
         ]);
 
         TaskType::create($validated);

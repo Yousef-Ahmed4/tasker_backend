@@ -40,7 +40,8 @@ class WorkspaceController extends Controller implements HasMiddleware
      */
     public function index(Request $request): JsonResponse
     {
-        $workspaces = $this->workspaceService->getAll($request->user()->id);
+        $projectId = $request->query('project_id') ? (int) $request->query('project_id') : null;
+        $workspaces = $this->workspaceService->getAll(null, $projectId);
 
         return $this->successResponse(
             WorkspaceResource::collection($workspaces),

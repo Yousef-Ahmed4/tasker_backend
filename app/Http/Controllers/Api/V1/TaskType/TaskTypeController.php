@@ -10,6 +10,7 @@ use App\Models\TaskType;
 use App\Services\TaskType\TaskTypeService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 
@@ -37,9 +38,10 @@ class TaskTypeController extends Controller implements HasMiddleware
     /**
      * Display a listing of task types.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $taskTypes = $this->taskTypeService->getAll();
+        $projectId = $request->query('project_id') ? (int) $request->query('project_id') : null;
+        $taskTypes = $this->taskTypeService->getAll($projectId);
 
         return $this->successResponse(
             TaskTypeResource::collection($taskTypes),

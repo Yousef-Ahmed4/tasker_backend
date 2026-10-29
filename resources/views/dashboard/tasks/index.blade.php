@@ -31,7 +31,12 @@
                     <div class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 flex items-center gap-3">
                         <div>
                             <span class="block text-xs font-bold text-slate-900 dark:text-white">{{ $tt->name }}</span>
-                            <span class="block text-[10px] font-mono uppercase font-bold text-brand-600 dark:text-brand-400">{{ $tt->type }}</span>
+                            <div class="flex items-center gap-1.5 mt-0.5">
+                                <span class="text-[10px] font-mono uppercase font-bold text-brand-600 dark:text-brand-400">{{ $tt->type }}</span>
+                                @if($tt->project)
+                                <span class="text-[9px] text-slate-400 font-medium">| 📂 {{ $tt->project->name }}</span>
+                                @endif
+                            </div>
                         </div>
                         <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
                             {{ $tt->tasks_count }}
@@ -259,6 +264,16 @@
                         <option value="device">{{ __('dashboard.device') }}</option>
                         <option value="focus">{{ __('dashboard.focus') }}</option>
                         <option value="other">{{ __('dashboard.other') }}</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">القسم / المشروع التابع له (Project)</label>
+                    <select name="project_id"
+                        class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-bold">
+                        <option value="">بدون قسم محدد (عام)</option>
+                        @foreach($projects as $p)
+                        <option value="{{ $p->id }}">{{ $p->name }}</option>
+                        @endforeach
                     </select>
                 </div>
                 <div class="flex justify-end gap-2 pt-2">

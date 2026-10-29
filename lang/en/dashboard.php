@@ -245,6 +245,7 @@ return [
     'confirm_delete_user'       => 'Are you sure you want to soft delete this user?',
     'confirm_delete_task'       => 'Are you sure you want to soft delete this task?',
     'user_created_success'      => 'User created successfully.',
+    'user_updated_success'      => 'User updated successfully.',
     'user_deleted_success'      => 'User deleted successfully.',
     'user_restored_success'     => 'User restored successfully.',
     'task_deleted_success'      => 'Task deleted successfully.',

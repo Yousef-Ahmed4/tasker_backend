@@ -245,6 +245,7 @@ return [
     'confirm_delete_user'       => 'کیا آپ واقعی اس صارف کو حذف کرنا چاہتے ہیں؟',
     'confirm_delete_task'       => 'کیا آپ واقعی اس ٹاسک کو حذف کرنا چاہتے ہیں؟',
     'user_created_success'      => 'صارف کامیابی سے بن گیا۔',
+    'user_updated_success'      => 'صارف کے کوائف کامیابی سے اپ ڈیٹ ہو گئے۔',
     'user_deleted_success'      => 'صارف کامیابی سے حذف ہو گیا۔',
     'user_restored_success'     => 'صارف کامیابی سے بحال ہو گیا۔',
     'task_deleted_success'      => 'ٹاسک کامیابی سے حذف ہو گیا۔',

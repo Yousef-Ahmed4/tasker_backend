@@ -317,11 +317,12 @@
             "method": "GET",
             "header": [{"key": "Accept", "value": "application/json", "type": "text"}],
             "url": {
-              "raw": "{{base_url}}/tasks?workspace_id=1&priority=High",
+              "raw": "{{base_url}}/tasks?workspace_id=1&status_id=1&priority=High",
               "host": ["{{base_url}}"],
               "path": ["tasks"],
               "query": [
                 {"key": "workspace_id", "value": "1"},
+                {"key": "status_id", "value": "1"},
                 {"key": "priority", "value": "High"}
               ]
             }

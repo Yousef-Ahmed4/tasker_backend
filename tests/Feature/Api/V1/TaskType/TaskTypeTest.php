@@ -160,4 +160,19 @@ class TaskTypeTest extends TestCase
         $validResponse->assertStatus(201)
             ->assertJsonPath('data.task_type_id', $taskType->id);
     }
+
+    public function test_can_filter_task_types_by_project_id(): void
+    {
+        $projectA = Project::create(['name' => 'Project A for Type']);
+        $projectB = Project::create(['name' => 'Project B for Type']);
+
+        $typeA = TaskType::create(['name' => 'Type A', 'type' => 'network', 'project_id' => $projectA->id]);
+        $typeB = TaskType::create(['name' => 'Type B', 'type' => 'device', 'project_id' => $projectB->id]);
+
+        $resA = $this->actingAs($this->admin, 'sanctum')->getJson('/api/task-types?project_id=' . $projectA->id);
+        $resA->assertStatus(200);
+        $idsA = collect($resA->json('data'))->pluck('id');
+        $this->assertTrue($idsA->contains($typeA->id));
+        $this->assertFalse($idsA->contains($typeB->id));
+    }
 }

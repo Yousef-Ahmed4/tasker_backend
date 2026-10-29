@@ -18,7 +18,18 @@ class StoreTaskRequest extends FormRequest
             'project_id'      => ['required', 'integer', 'exists:projects,id'],
             'workspace_id'    => ['required', 'integer', 'exists:workspaces,id'],
             'status_id'       => ['required', 'integer', 'exists:task_statuses,id'],
-            'task_type_id'    => ['required', 'integer', 'exists:task_types,id'],
+            'task_type_id'    => [
+                'required',
+                'integer',
+                Rule::exists('task_types', 'id')->where(function ($query) {
+                    $projectId = $this->input('project_id');
+                    if ($projectId) {
+                        $query->where(function ($q) use ($projectId) {
+                            $q->whereNull('project_id')->orWhere('project_id', $projectId);
+                        });
+                    }
+                }),
+            ],
             'title'           => ['required', 'string', 'max:255'],
             'description'     => ['nullable', 'string'],
             'priority'        => ['nullable', 'string', Rule::in(['None', 'Low', 'Normal', 'High', 'Urgent'])],

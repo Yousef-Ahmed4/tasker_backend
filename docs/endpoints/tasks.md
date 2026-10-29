@@ -6,10 +6,16 @@ Manage tasks, subtasks, priorities, automatic position ordering, status transiti
 
 ## 1. List Tasks
 
-Supports filtering by query parameters: `workspace_id`, `project_id`, `status_id`, `priority`.
+Supports filtering by query parameters:
+- `status_id`: Filter by status ID. Supports single ID (`status_id=1`), array (`status_id[]=1&status_id[]=2`), or comma-separated string (`status_id=1,2`). Aliases: `status_ids`, `task_status_id`.
+- `workspace_id`: Filter by workspace ID (`workspace_id=1`).
+- `project_id`: Filter by project ID (`project_id=1`).
+- `priority`: Filter by priority (`priority=High`).
+- `parent_task_id`: Filter by parent task ID, or pass `all` to retrieve all tasks without parent restriction.
+- `per_page`: Number of tasks per page (default: 10).
 
 - **Method**: `GET`
-- **URL**: `/api/tasks?workspace_id=1&priority=High`
+- **URL**: `/api/tasks?workspace_id=1&status_id=1&priority=High`
 
 ### Response (200 OK)
 ```json

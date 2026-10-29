@@ -40,4 +40,12 @@ class Project extends Model
     {
         return $this->hasMany(Task::class);
     }
+
+    /**
+     * Task types belonging to this project.
+     */
+    public function taskTypes(): HasMany
+    {
+        return $this->hasMany(TaskType::class);
+    }
 }

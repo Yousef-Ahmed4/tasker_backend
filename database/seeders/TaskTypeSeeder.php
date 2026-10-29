@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Project;
 use App\Models\TaskType;
 use Illuminate\Database\Seeder;
 
@@ -12,29 +13,38 @@ class TaskTypeSeeder extends Seeder
      */
     public function run(): void
     {
+        $projects = Project::pluck('id')->all();
+        $firstProjectId = $projects[0] ?? null;
+        $secondProjectId = $projects[1] ?? $firstProjectId;
+        $thirdProjectId = $projects[2] ?? $firstProjectId;
+
         $types = [
             [
-                'name' => 'Network Issue',
-                'type' => 'network',
+                'name'       => 'Network Issue',
+                'type'       => 'network',
+                'project_id' => $firstProjectId,
             ],
             [
-                'name' => 'Device Maintenance',
-                'type' => 'device',
+                'name'       => 'Device Maintenance',
+                'type'       => 'device',
+                'project_id' => $firstProjectId,
             ],
             [
-                'name' => 'Focus Work',
-                'type' => 'focus',
+                'name'       => 'Focus Work',
+                'type'       => 'focus',
+                'project_id' => $secondProjectId,
             ],
             [
-                'name' => 'General Tasks',
-                'type' => 'other',
+                'name'       => 'General Tasks',
+                'type'       => 'other',
+                'project_id' => $thirdProjectId,
             ],
         ];
 
         foreach ($types as $type) {
-            TaskType::firstOrCreate(
-                ['type' => $type['type']],
-                ['name' => $type['name']]
+            TaskType::updateOrCreate(
+                ['name' => $type['name'], 'project_id' => $type['project_id']],
+                $type
             );
         }
     }

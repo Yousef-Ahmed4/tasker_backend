@@ -105,6 +105,16 @@ class User extends Authenticatable
     }
 
     /**
+     * Workspaces assigned to the user.
+     */
+    public function workspaces(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Workspace::class, 'workspace_users')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
+    /**
      * Get the user's preferred language from user_settings, or default from settings table.
      */
     public function getPreferredLocale(): string
